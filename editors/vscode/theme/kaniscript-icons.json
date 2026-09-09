@@ -1,0 +1,18 @@
+{
+  "iconDefinitions": {
+    "_file": {
+      "iconPath": "../icons/kaniscript.svg"
+    },
+    "_kaniscript": {
+      "iconPath": "../icons/kaniscript.svg"
+    }
+  },
+  "file": "_file",
+  "fileExtensions": {
+    "ks": "_kaniscript",
+    "kani": "_kaniscript"
+  },
+  "languageIds": {
+    "kaniscript": "_kaniscript"
+  }
+}

@@ -16,7 +16,11 @@
         "id": "kaniscript",
         "aliases": ["KaniScript", "kani", "ks"],
         "extensions": [".ks", ".kani"],
-        "configuration": "./language-configuration.json"
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/kaniscript.svg",
+          "dark": "./icons/kaniscript.svg"
+        }
       }
     ],
     "grammars": [
@@ -30,6 +34,13 @@
       {
         "language": "kaniscript",
         "path": "./snippets/kaniscript.json"
+      }
+    ],
+    "iconThemes": [
+      {
+        "id": "kaniscript-icons",
+        "label": "KaniScript Icons",
+        "path": "./theme/kaniscript-icons.json"
       }
     ]
   }
