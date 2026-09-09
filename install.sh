@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-REPO_URL="https://github.com/coldleaf0124/kaniscript.git"
+REPO_URL="https://github.com/coldleaf0124/KaniScript.git"
 INSTALL_DIR="$HOME/.kaniscript"
 
 # Determine source directory
@@ -21,7 +21,7 @@ fi
 BIN_DIR="$DIR/bin"
 
 echo "=================================================="
-echo " 🦀 KaniScript (kani / ks) Installer"
+echo "  KaniScript (kani / ks) Installer"
 echo "=================================================="
 
 # Ensure bin scripts are executable
