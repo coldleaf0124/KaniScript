@@ -18,7 +18,7 @@
 
 ---
 
-## 🦀 Why KaniScript?
+## Why KaniScript?
 
 Developers have long faced a hard choice:
 - **Python / Go**: Highly productive, but garbage collection (GC) introduces memory bloat and runtime pauses.
@@ -31,7 +31,7 @@ Developers have long faced a hard choice:
 
 ---
 
-## ⚡ 1,000,000 Rows CSV Benchmark
+## 1,000,000 Rows CSV Benchmark
 
 Parsing and aggregating a 28.4 MB CSV file (1,000,000 rows, 5 columns) on an **Apple M2** (macOS arm64, Clang -O3, Python 3.14, N=10 trials):
 
@@ -43,7 +43,7 @@ python3 benchmarks/csv_benchmark_runner.py
 |---|---|---|---|---|---|
 | **Python 3.14 (Standard)** | 0.4239s | 1.00x | 14.5 MB | 31 | N/A (GC) |
 | **C++ Clang -O3 (Naive `ifstream` + `string`)** | 0.2085s | 2.03x | 1.6 MB | 42 | 0 B (Manual Free) |
-| **🦀 KaniScript (2-Layer Arena + Slices)** | **0.1440s** | **2.94x** | 196.0 MB | 41 | **0 B (LIFO Reset)** |
+| **KaniScript (2-Layer Arena + Slices)** | **0.1440s** | **2.94x** | 196.0 MB | 41 | **0 B (LIFO Reset)** |
 | **C++ Clang -O3 (Hand-tuned `string_view` + `charconv`)** | 0.0790s | 5.37x | 29.1 MB | 49 | 0 B (Zero-Alloc) |
 
 ### Honest Technical Analysis
@@ -54,7 +54,7 @@ python3 benchmarks/csv_benchmark_runner.py
 
 ---
 
-## ✨ Ultra-Minimalist Syntax
+## Ultra-Minimalist Syntax
 
 | Feature | Conventional (Rust / Python / C++) | **KaniScript** |
 |---|---|---|
@@ -80,7 +80,7 @@ main() {
 
 ---
 
-## 🧠 Memory Architecture: Caller-Side Boundary Promotion
+## Memory Architecture: Caller-Side Boundary Promotion
 
 KaniScript uses two distinct memory arenas:
 1. **Scratch Arena**: For temporary expressions, intermediate strings, and loop-local slices. Rewound on every loop iteration (`offset = mark`) with zero deallocation overhead.
@@ -103,7 +103,7 @@ Functions always return Scratch-backed data. The compiler tracks AST scope depth
 
 ---
 
-## 🚀 Installation & Getting Started
+## Installation & Getting Started
 
 ### 1. One-Liner Install
 ```bash
@@ -130,7 +130,7 @@ kani build examples/04_csv_aggregator.ks -o aggregator
 
 ---
 
-## 🧪 Testing
+## Testing
 
 KaniScript includes a 44-test regression suite covering lexing, parsing, type checking, memory boundaries, and E2E execution:
 
@@ -140,6 +140,6 @@ python3 tests/test_all.py
 
 ---
 
-## 📄 License
+## License
 
 MIT License. See [LICENSE](LICENSE) for details.

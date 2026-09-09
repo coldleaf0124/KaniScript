@@ -15,7 +15,7 @@
 
 ---
 
-## ✨ KaniScript の完全独自構文
+## KaniScript の完全独自構文
 
 | 機能 | 従来の言語 (Rust / C++ / Python) | **KaniScript** |
 |---|---|---|
@@ -28,7 +28,7 @@
 
 ---
 
-## ⚡ 100万行 CSV 集計ベンチマーク
+## 100万行 CSV 集計ベンチマーク
 
 Apple M2 (macOS arm64, Clang -O3, Python 3.14, N=10試行平均) における実測値:
 
@@ -36,7 +36,7 @@ Apple M2 (macOS arm64, Clang -O3, Python 3.14, N=10試行平均) における実
 |---|---|---|---|---|---|
 | **Python 3.14 (Standard)** | 0.4239s | 1.00x | 14.5 MB | 31行 | N/A (GC) |
 | **C++ Clang -O3 (素朴な `ifstream` + `string`)** | 0.2085s | 2.03x | 1.6 MB | 42行 | 0 B (手動Free) |
-| **🦀 KaniScript (2層アリーナ + スライス)** | **0.1440s** | **2.94x** | 196.0 MB | 41行 | **0 B (完全回収)** |
+| **KaniScript (2層アリーナ + スライス)** | **0.1440s** | **2.94x** | 196.0 MB | 41行 | **0 B (完全回収)** |
 | **C++ Clang -O3 (手動最適化 `string_view` + `charconv`)** | 0.0790s | 5.37x | 29.1 MB | 49行 | 0 B (ゼロアロケーション) |
 
 - **素朴なC++より31%高速**: アリーナポインタ加算とLIFO巻き戻しにより、毎行のヒープ割り当てオーバーヘッドを排除。
@@ -45,7 +45,7 @@ Apple M2 (macOS arm64, Clang -O3, Python 3.14, N=10試行平均) における実
 
 ---
 
-## 🚀 インストール & 使い方
+## インストール & 使い方
 
 ```bash
 # クローン
@@ -66,6 +66,6 @@ kani build examples/04_csv_aggregator.ks -o aggregator
 
 ---
 
-## 📄 ライセンス
+## ライセンス
 
 MIT License
