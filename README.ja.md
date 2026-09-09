@@ -48,11 +48,12 @@ Apple M2 (macOS arm64, Clang -O3, Python 3.14, N=10試行平均) における実
 ## インストール & 使い方
 
 ```bash
-# クローン
-git clone https://github.com/coldleaf0124/kaniscript.git
-cd kaniscript
+# ワンライナーインストール (macOS / Linux)
+curl -fsSL https://raw.githubusercontent.com/coldleaf0124/KaniScript/main/install.sh | bash
 
-# インストール
+# または手動クローン & インストール
+git clone https://github.com/coldleaf0124/KaniScript.git
+cd KaniScript
 ./install.sh
 
 # 実行

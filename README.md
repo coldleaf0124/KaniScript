@@ -105,10 +105,15 @@ Functions always return Scratch-backed data. The compiler tracks AST scope depth
 
 ## Installation & Getting Started
 
-### 1. One-Liner Install
+### 1. One-Liner Install (macOS / Linux)
 ```bash
-git clone https://github.com/coldleaf0124/kaniscript.git
-cd kaniscript
+curl -fsSL https://raw.githubusercontent.com/coldleaf0124/KaniScript/main/install.sh | bash
+```
+
+Or clone and install locally:
+```bash
+git clone https://github.com/coldleaf0124/KaniScript.git
+cd KaniScript
 ./install.sh
 ```
 
