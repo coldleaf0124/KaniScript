@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# KaniScript temporary C and binary files
+*_kani_gen.c
+*_hrpy_gen.c
+bin/*
+!bin/kani
+!bin/ks
+
+# Benchmark data and artifacts
+data/*.csv
+data/test_io.txt
+benchmarks/*_cpp*
+benchmarks/*_kani*
+benchmarks/*_test*
+benchmarks/generic_bench
+benchmarks/hyper_test
+benchmarks/string_bench_variants
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo

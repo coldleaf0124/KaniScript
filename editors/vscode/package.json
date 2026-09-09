@@ -1,0 +1,36 @@
+{
+  "name": "kaniscript",
+  "displayName": "KaniScript Language Support",
+  "description": "Syntax highlighting and language support for KaniScript (.ks)",
+  "version": "0.1.0",
+  "publisher": "kaniscript",
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "kaniscript",
+        "aliases": ["KaniScript", "kani", "ks"],
+        "extensions": [".ks", ".kani"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "kaniscript",
+        "scopeName": "source.kaniscript",
+        "path": "./syntaxes/kaniscript.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "kaniscript",
+        "path": "./snippets/kaniscript.json"
+      }
+    ]
+  }
+}
