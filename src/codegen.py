@@ -88,14 +88,18 @@ class CodeGen:
         if isinstance(node, Call):
             # 構造体コンストラクタまたは関数の戻り値型を取得
             if isinstance(node.func, Ident):
-                if node.func.name in ("int_to_str", "float_to_str", "zp_int_to_str", "zp_float_to_str", "trim", "read_file"):
+                if node.func.name in ("int_to_str", "float_to_str", "zp_int_to_str", "zp_float_to_str", "trim", "read_file", "read_line", "substr", "tcp_recv"):
                     return "str"
-                if node.func.name in ("parse_i64", "len", "perm_used", "scratch_used"):
+                if node.func.name in ("parse_i64", "len", "perm_used", "scratch_used", "http_listen", "tcp_listen", "tcp_accept"):
                     return "i64"
                 if node.func.name in ("parse_f64", "time_now"):
                     return "f64"
-                if node.func.name == "write_file":
+                if node.func.name in ("write_file", "http_respond", "str_contains"):
                     return "bool"
+                if node.func.name == "http_accept":
+                    return "HttpRequest"
+                if node.func.name in ("http_close", "tcp_send", "tcp_close"):
+                    return "void"
                 if node.func.name == "split":
                     return "[]str"
                 if self.tc and node.func.name in self.tc.struct_types:
@@ -221,6 +225,18 @@ class CodeGen:
                 "time_now":     "zp_time_now",
                 "perm_used":    "zp_perm_used",
                 "scratch_used": "zp_scratch_used",
+                "http_listen":  "zp_http_listen",
+                "http_accept":  "zp_http_accept",
+                "http_respond": "zp_http_respond",
+                "http_close":   "zp_http_close",
+                "read_line":    "zp_read_line",
+                "substr":       "zp_substr",
+                "str_contains": "zp_str_contains",
+                "tcp_listen":   "zp_tcp_listen",
+                "tcp_accept":   "zp_tcp_accept",
+                "tcp_recv":     "zp_tcp_recv",
+                "tcp_send":     "zp_tcp_send",
+                "tcp_close":    "zp_tcp_close",
             }
             if name == "len" and len(node.args) == 1:
                 arg = node.args[0]

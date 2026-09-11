@@ -12,6 +12,12 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <errno.h>
 
 static inline double zp_time_now(void) {
     struct timespec ts;
@@ -347,3 +353,231 @@ static inline zp_list_str_t zp_split(const char* s, const char* sep) {
     }
     return list;
 }
+
+static inline const char* zp_read_line(void) {
+    char buf[512];
+    if (!fgets(buf, sizeof(buf), stdin)) {
+        return "";
+    }
+    size_t len = strlen(buf);
+    while (len > 0 && (buf[len - 1] == '\n' || buf[len - 1] == '\r')) {
+        buf[--len] = '\0';
+    }
+    char* res = (char*)zp_alloc_scratch(len + 1);
+    memcpy(res, buf, len + 1);
+    return res;
+}
+
+/* ===== 文字列検索・スライス ===== */
+static inline const char* zp_substr(const char* s, int64_t start, int64_t len) {
+    if (!s) return "";
+    size_t s_len = strlen(s);
+    if (start < 0 || (size_t)start >= s_len || len <= 0) return "";
+    size_t actual_len = (size_t)len;
+    if ((size_t)start + actual_len > s_len) {
+        actual_len = s_len - (size_t)start;
+    }
+    char* buf = (char*)zp_alloc_scratch(actual_len + 1);
+    memcpy(buf, s + start, actual_len);
+    buf[actual_len] = '\0';
+    return buf;
+}
+
+static inline bool zp_str_contains(const char* s, const char* sub) {
+    if (!s || !sub) return false;
+    return strstr(s, sub) != NULL;
+}
+
+/* ===== TCP ソケット / ネットワークプリミティブ ===== */
+static inline int64_t zp_tcp_listen(int64_t port) {
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd < 0) return -1;
+
+    int opt = 1;
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
+    struct sockaddr_in addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_port = htons((uint16_t)port);
+
+    if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+        close(fd);
+        return -1;
+    }
+
+    if (listen(fd, 128) < 0) {
+        close(fd);
+        return -1;
+    }
+
+    return (int64_t)fd;
+}
+
+static inline int64_t zp_tcp_accept(int64_t server_fd) {
+    struct sockaddr_in client_addr;
+    socklen_t client_len = sizeof(client_addr);
+    int client_fd = accept((int)server_fd, (struct sockaddr*)&client_addr, &client_len);
+    return (int64_t)client_fd;
+}
+
+static inline const char* zp_tcp_recv(int64_t client_fd) {
+    char buf[16384];
+    ssize_t n = recv((int)client_fd, buf, sizeof(buf) - 1, 0);
+    if (n <= 0) return "";
+    buf[n] = '\0';
+    char* res = (char*)zp_alloc_scratch((size_t)n + 1);
+    memcpy(res, buf, (size_t)n + 1);
+    return res;
+}
+
+static inline void zp_tcp_send(int64_t client_fd, const char* data) {
+    if (!data) return;
+    size_t len = strlen(data);
+    size_t total = 0;
+    while (total < len) {
+        ssize_t n = send((int)client_fd, data + total, len - total, 0);
+        if (n <= 0) break;
+        total += (size_t)n;
+    }
+}
+
+static inline void zp_tcp_close(int64_t fd) {
+    if (fd >= 0) {
+        close((int)fd);
+    }
+}
+
+/* ===== HTTP サーバー (POSIX Sockets) ===== */
+
+typedef struct {
+    int64_t client_id;
+    const char* method;
+    const char* path;
+    const char* body;
+} HttpRequest;
+
+static inline HttpRequest HttpRequest_promote(HttpRequest r) {
+    r.method = zp_promote(r.method);
+    r.path = zp_promote(r.path);
+    r.body = zp_promote(r.body);
+    return r;
+}
+
+static inline int64_t zp_http_listen(int64_t port) {
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd < 0) return -1;
+    int opt = 1;
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
+    struct sockaddr_in addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_port = htons((uint16_t)port);
+
+    if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+        close(fd);
+        return -1;
+    }
+    if (listen(fd, 128) < 0) {
+        close(fd);
+        return -1;
+    }
+    return (int64_t)fd;
+}
+
+static inline HttpRequest zp_http_accept(int64_t server_fd) {
+    HttpRequest req = { -1, "", "", "" };
+    if (server_fd < 0) return req;
+
+    struct sockaddr_in client_addr;
+    socklen_t client_len = sizeof(client_addr);
+    int client_fd = accept((int)server_fd, (struct sockaddr*)&client_addr, &client_len);
+    if (client_fd < 0) return req;
+
+    req.client_id = (int64_t)client_fd;
+
+    // リクエスト読み込み (最大 64KB)
+    size_t buf_cap = 65536;
+    char* raw = (char*)zp_alloc_scratch(buf_cap);
+    ssize_t n = recv(client_fd, raw, buf_cap - 1, 0);
+    if (n <= 0) {
+        return req;
+    }
+    raw[n] = '\0';
+
+    // ボディ抽出 (\r\n\r\n または \n\n) を先に実行
+    char* body_sep = strstr(raw, "\r\n\r\n");
+    if (body_sep) {
+        req.body = body_sep + 4;
+    } else {
+        body_sep = strstr(raw, "\n\n");
+        if (body_sep) {
+            req.body = body_sep + 2;
+        } else {
+            req.body = "";
+        }
+    }
+
+    // HTTPリクエストパース: "METHOD /path HTTP/1.1"
+    char* p = raw;
+    while (*p == ' ') p++;
+    char* method_start = p;
+    while (*p && *p != ' ') p++;
+    if (!*p) return req;
+    *p = '\0';
+    req.method = method_start;
+
+    p++;
+    while (*p == ' ') p++;
+    char* path_start = p;
+    while (*p && *p != ' ' && *p != '\r' && *p != '\n') p++;
+    *p = '\0';
+    req.path = path_start;
+
+    return req;
+}
+
+static inline bool zp_http_respond(int64_t client_id, int64_t status, const char* content_type, const char* body) {
+    if (client_id < 0) return false;
+    int fd = (int)client_id;
+    if (!body) body = "";
+    if (!content_type) content_type = "text/plain";
+    size_t body_len = strlen(body);
+
+    const char* status_text = "OK";
+    if (status == 200) status_text = "OK";
+    else if (status == 201) status_text = "Created";
+    else if (status == 204) status_text = "No Content";
+    else if (status == 400) status_text = "Bad Request";
+    else if (status == 403) status_text = "Forbidden";
+    else if (status == 404) status_text = "Not Found";
+    else if (status == 500) status_text = "Internal Server Error";
+
+    char header[512];
+    int header_len = snprintf(header, sizeof(header),
+        "HTTP/1.1 %lld %s\r\n"
+        "Content-Type: %s\r\n"
+        "Content-Length: %zu\r\n"
+        "Connection: close\r\n"
+        "Access-Control-Allow-Origin: *\r\n"
+        "\r\n",
+        (long long)status, status_text, content_type, body_len);
+
+    ssize_t hw = send(fd, header, (size_t)header_len, 0);
+    ssize_t bw = 0;
+    if (body_len > 0) {
+        bw = send(fd, body, body_len, 0);
+    }
+    close(fd);
+    return (hw > 0);
+}
+
+static inline void zp_http_close(int64_t server_fd) {
+    if (server_fd >= 0) {
+        close((int)server_fd);
+    }
+}
+

@@ -322,6 +322,31 @@ def t_e2e_practical():
     assert "ALL PRACTICAL FEATURES VERIFIED" in res.stdout
 run("E2E実用テスト実行 (ファイルI/O・split・型変換・集計)", t_e2e_practical)
 
+def t_http_server_builtins():
+    typecheck("""
+fn test_http() {
+    srv := http_listen(8080)
+    req := http_accept(srv)
+    cid := req.client_id
+    m := req.method
+    p := req.path
+    b := req.body
+    ok := http_respond(cid, 200, "text/html", "<h1>OK</h1>")
+    http_close(srv)
+}
+""")
+run("HTTPサーバー組み込み型・関数の型チェック", t_http_server_builtins)
+
+def t_e2e_http_server():
+    import subprocess
+    repo_root = Path(__file__).resolve().parent.parent
+    test_script = repo_root / "tests" / "test_http_server.py"
+    cmd = [sys.executable, str(test_script)]
+    res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd=str(repo_root))
+    assert res.returncode == 0, f"HTTP Server Test Failed: {res.stderr}\n{res.stdout}"
+    assert "ALL HTTP SERVER TESTS PASSED" in res.stdout
+run("E2E HTTP Webサーバー実動テスト (HTML/JSON/404レスポンス)", t_e2e_http_server)
+
 
 
 # ===== 結果 =====

@@ -101,6 +101,27 @@ class TypeChecker:
         self.fn_types["time_now"]  = FnType(params=[], ret=T_F64)
         self.fn_types["perm_used"] = FnType(params=[], ret=T_I64)
         self.fn_types["scratch_used"] = FnType(params=[], ret=T_I64)
+        self.fn_types["read_line"] = FnType(params=[], ret=T_STR)
+        self.fn_types["substr"] = FnType(params=[T_STR, T_I64, T_I64], ret=T_STR)
+        self.fn_types["str_contains"] = FnType(params=[T_STR, T_STR], ret=T_BOOL)
+        self.fn_types["tcp_listen"] = FnType(params=[T_I64], ret=T_I64)
+        self.fn_types["tcp_accept"] = FnType(params=[T_I64], ret=T_I64)
+        self.fn_types["tcp_recv"] = FnType(params=[T_I64], ret=T_STR)
+        self.fn_types["tcp_send"] = FnType(params=[T_I64, T_STR], ret=T_VOID)
+        self.fn_types["tcp_close"] = FnType(params=[T_I64], ret=T_VOID)
+
+        # HTTP サーバー機能
+        t_http_req = ZType("HttpRequest")
+        self.struct_types["HttpRequest"] = {
+            "client_id": T_I64,
+            "method": T_STR,
+            "path": T_STR,
+            "body": T_STR,
+        }
+        self.fn_types["http_listen"]  = FnType(params=[T_I64], ret=T_I64)
+        self.fn_types["http_accept"]  = FnType(params=[T_I64], ret=t_http_req)
+        self.fn_types["http_respond"] = FnType(params=[T_I64, T_I64, T_STR, T_STR], ret=T_BOOL)
+        self.fn_types["http_close"]   = FnType(params=[T_I64], ret=T_VOID)
 
     def push_scope(self):
         self.scopes.append({})
